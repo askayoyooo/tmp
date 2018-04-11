@@ -85,10 +85,6 @@ def login(request):
     return obj
 
 
-
-
-
-
 def logout(request):
     request.session.clear()
     return redirect('login.html')
@@ -109,51 +105,14 @@ def handle_classes(request):
     if request.method == "GET":
         current_page = request.GET.get('p', 1)
         current_page = int(current_page)
-            #1 0, 10
-            #2 10,20
 
-        items_count_per_page = 10
-        page_start = (current_page-1)*items_count_per_page
-        page_end = page_start+items_count_per_page
-        class_list = models.Classes.objects.all()[page_start:page_end]
+        items_count_per_page = 5
         total_count = models.Classes.objects.all().count()
-        v,a = divmod(total_count, items_count_per_page)
-        if a!=0:
-            v+=1
-        pager_list = []
-        if current_page == 1:
-            pager_list.append('<a href="#">上一页</a>')
-        else:
-            pager_list.append('<a href="classes.html?p=%s">上一页</a>' % (current_page - 1))
-
-        if v <= 11:
-            pager_range_start = 1
-            pager_range_end = v
-        else:
-            if current_page < 6:
-                pager_range_start = 1
-                pager_range_end = 12
-            else:
-                if current_page+5 < v:
-                    pager_range_start = current_page - 5
-                    pager_range_end = current_page + 5+1
-                else:
-                    pager_range_start = v - 10
-                    pager_range_end = v+1
-        for i in range(pager_range_start, pager_range_end):
-            if i == current_page:
-                pager_list.append('<a class="active" href="classes.html?p=%s">%s</a>' % (i, i))
-            else:
-                pager_list.append('<a href="classes.html?p=%s">%s</a>' % (i, i))
-        if current_page == v:
-            pager_list.append('<a href="#">下一页</a>')
-        else:
-            pager_list.append('<a href="classes.html?p=%s">下一页</a>' % (current_page + 1))
-        pager_str = "".join(pager_list)
-
-
-
-
+        base_url = "classes.html"
+        from app01.utils.page import PagerHelper
+        obj = PagerHelper(total_count, current_page, items_count_per_page, base_url)
+        pager_str = obj.pager_str()
+        class_list = models.Classes.objects.all()[obj.page_start:obj.page_end]
 
         from django.utils.safestring import mark_safe
         return render(request,
@@ -161,10 +120,8 @@ def handle_classes(request):
                       {'user': user, 'class_list': class_list, 'pager_str': mark_safe(pager_str)}) #可以在前端模板变量后|safe
 
 
-class PagerHelper():
-    def __init__(self):
-        pass
-    def pager_str(self):
+
+
         
 
 

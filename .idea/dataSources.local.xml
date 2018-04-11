@@ -8,5 +8,8 @@
       <auth-required>false</auth-required>
       <introspection-schemas>*:*</introspection-schemas>
     </data-source>
+    <data-source name="db" uuid="cd255ced-5da3-4855-85b6-0166076fad00">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" />
+    </data-source>
   </component>
 </project>
