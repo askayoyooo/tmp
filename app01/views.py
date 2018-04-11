@@ -3,6 +3,7 @@ from django import views
 from app01 import models
 from django.utils.decorators import method_decorator
 # Create your views here.
+# http://ccbv.co.uk/
 
 
 def auth(func):
@@ -53,15 +54,12 @@ class Class(views.View):
     def post(self, request):
         user = request.session['user']
         caption = request.POST.get('caption')
+
         if caption:
             models.Classes.objects.create(caption=caption)
             return redirect('classes.html')
-
-
-
-
-
-
+        else:
+            return render(request, 'classes.html', {'user': user})
 
 
 def login(request):
@@ -70,8 +68,8 @@ def login(request):
     #     username='root',
     #     password='123456'
     # )
-    v = request.session
-    print(type(v))
+    # v = request.session
+    # print(type(v))
     if request.method == "POST":
         user = request.POST.get('user')
         pwd = request.POST.get('pwd')
@@ -104,14 +102,73 @@ def index(request):
 
 @auth
 def handle_classes(request):
+    # for i in range(300):
+    #     caption = "班级"+str(i)
+    #     models.Classes.objects.create(caption=caption)
     user = request.session['user']
-    class_list = models.Classes.objects.all()
-    # models.Classes.objects.create(caption='一班')
-    # models.Classes.objects.create(caption='二班')
-    # models.Classes.objects.create(caption='三班')
-    return render(request,
-                  'classes.html',
-                  {'user': user, 'class_list': class_list})
+    if request.method == "GET":
+        current_page = request.GET.get('p', 1)
+        current_page = int(current_page)
+            #1 0, 10
+            #2 10,20
+
+        items_count_per_page = 10
+        page_start = (current_page-1)*items_count_per_page
+        page_end = page_start+items_count_per_page
+        class_list = models.Classes.objects.all()[page_start:page_end]
+        total_count = models.Classes.objects.all().count()
+        v,a = divmod(total_count, items_count_per_page)
+        if a!=0:
+            v+=1
+        pager_list = []
+        if current_page == 1:
+            pager_list.append('<a href="#">上一页</a>')
+        else:
+            pager_list.append('<a href="classes.html?p=%s">上一页</a>' % (current_page - 1))
+
+        if v <= 11:
+            pager_range_start = 1
+            pager_range_end = v
+        else:
+            if current_page < 6:
+                pager_range_start = 1
+                pager_range_end = 12
+            else:
+                if current_page+5 < v:
+                    pager_range_start = current_page - 5
+                    pager_range_end = current_page + 5+1
+                else:
+                    pager_range_start = v - 10
+                    pager_range_end = v+1
+        for i in range(pager_range_start, pager_range_end):
+            if i == current_page:
+                pager_list.append('<a class="active" href="classes.html?p=%s">%s</a>' % (i, i))
+            else:
+                pager_list.append('<a href="classes.html?p=%s">%s</a>' % (i, i))
+        if current_page == v:
+            pager_list.append('<a href="#">下一页</a>')
+        else:
+            pager_list.append('<a href="classes.html?p=%s">下一页</a>' % (current_page + 1))
+        pager_str = "".join(pager_list)
+
+
+
+
+
+        from django.utils.safestring import mark_safe
+        return render(request,
+                      'classes.html',
+                      {'user': user, 'class_list': class_list, 'pager_str': mark_safe(pager_str)}) #可以在前端模板变量后|safe
+
+
+class PagerHelper():
+    def __init__(self):
+        pass
+    def pager_str(self):
+        
+
+
+
 
 
 @auth
@@ -141,3 +198,13 @@ def delete_class(request):
         print(class_id)
         models.Classes.objects.filter(id=class_id).delete()
         return HttpResponse('OK')
+
+
+@auth
+def edit_class(request):
+    user = request.session['user']
+    if request.method == 'POST':
+        class_id = request.POST.get('class_id')
+        caption = request.POST.get('caption')
+        models.Classes.objects.filter(id=class_id).update(caption=caption)
+        return render(request, 'editClass.html', {'user': user})

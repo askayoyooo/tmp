@@ -20,7 +20,7 @@
         <tbody>
             {% for foo in class_list %}
                 <tr>
-                    <td>{{ foo.id }}</td>
+                    <td id="{{ foo.id }}">{{ foo.id }}</td>
                     <td>{{ foo.caption }}</td>
                     <td>
                         <a class="td-edit" >编辑</a> |
@@ -31,6 +31,12 @@
 
         </tbody>
     </table>
+    
+    <div class="pagination">
+        {{ pager_str }}
+    </div>
+    
+    
     <div class="modal hide">
         <input type="text" placeholder="班级标题"/>
         <input id="id_modal_cancel" type="button" value="取消"/>
@@ -43,6 +49,7 @@
         <input id="id_2_remove" type="button" value="确定"/>
     </div>
     <div class="edit hide">
+        <p>标题<input type="text" class="edit_caption"></p>
         <input id="id_edit_cancel" type="button" value="取消"/>
         <input id="id_3_edit" type="button" value="确定"/>
     </div>
@@ -55,8 +62,9 @@
         bindAddEvent();
         bindCancelEvent();
         bindTDRemoveEvent();
+        bindTDEditEvent();
+        bindRemoveEvent();
         bindEditEvent();
-        bindRemoveEvent()
     });
     function bindAddEvent() {
         $('#id_add').click(function () {
@@ -71,7 +79,7 @@
     function bindTDRemoveEvent() {
         $('tr').on('click', '.td-delete',function () {
             console.log($(this).parent().parent().children('td').eq(0).text())// 获取TD中的值
-            $('#removed_class_id').html($(this).parent().parent().children('td').eq(0).text())
+            $('#removed_class_id').html($(this).parent().parent().children('td').eq(0).text());
              $('.remove, .shade').removeClass('hide')
         })
         //$('td .td-delete').click(function () {
@@ -80,18 +88,20 @@
            // alert($('#id_2_remove').attr('type'))
 
     }
-    function bindEditEvent() {
+    function bindTDEditEvent() {
         $('td .td-edit').click(function () {
+            $('.edit_caption').val($(this).parent().parent().children('td').eq(1).text());
+            $('.edit_caption').attr('id',$(this).parent().parent().children('td').eq(0).text())
             $('.edit, .shade').removeClass('hide')
         })
     }
-        function bindRemoveEvent() {
+    function bindRemoveEvent() {
         $('#id_2_remove').click(function () {
             var class_id = $('#removed_class_id').text();
             console.log(class_id);
              $.ajaxSetup({
             data:{csrfmiddlewaretoken:'{{ csrf_token }}'}
-         });
+            });
             $.ajax({
                 type:"POST",
                 url:"deleteClass.html",
@@ -102,9 +112,32 @@
                 }
 
             })
-            $('.remove, .shade').addClass('hide')
-            location.reload();
+            $('.remove, .shade').addClass('hide');
+            $(('#'+class_id)).parent().remove();
         })
+    }
+    function bindEditEvent() {
+        $('#id_3_edit').click(function () {
+            var class_id = $('.edit_caption').attr('id');
+            var caption = $('.edit_caption').val();
+            console.log(class_id);
+            console.log(caption);
+            $.ajaxSetup({                       // POST 这里要防止scrf
+            data:{csrfmiddlewaretoken:'{{ csrf_token }}'}
+            });
+            $.ajax({
+                type: "POST",
+                url: "editClass.html",
+                data:{class_id:class_id,caption:caption},
+                dataType:"json",
+                success:function (data) {//搞清楚这里要干什么
+                    location.reload();
+                }
+            })
+        $('.edit, .shade').addClass('hide');
+        $(('#'+class_id)).next().html(caption) // 变量作为选择器
+        })
+
     }
     </script>
 {% endblock %}

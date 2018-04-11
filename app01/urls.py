@@ -11,5 +11,6 @@ urlpatterns = [
     path('student.html', views.handle_student),
     path('teacher.html', views.handle_teacher),
     path('addClass.html', views.Class.as_view()),
-    path('deleteClass.html',views.delete_class)
+    path('deleteClass.html', views.delete_class),
+    path('editClass.html', views.edit_class),
 ]

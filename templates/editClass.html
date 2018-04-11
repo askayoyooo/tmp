@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<form action="editClass.html" method="post">
+    {% csrf_token %}
+    <p>
+        标题<input type="text" name="caption" placeholder="标题" >
+    </p>
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}
